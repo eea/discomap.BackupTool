@@ -5,7 +5,7 @@ Description
 This tool allows making a backup of the selected services from a server.
 
 Environment requirements
-The tool is developped to run under Arcgis 10.2 (Python2.7)
+The tool is developped to run under Arcgis 10.3.1 (Python2.7)
 The ArcGIS services sources must be placed in a path according to the following structure: \\server_name\x\arcgisserver\...
 The user that executes the tool or/and the user from ArcGIS Server that uses the geoprocessing service, should be able to access to each network path where the service’s sources are placed in order to copy them. 
 The server where the geoprocessing service is displayed or the one where the tool is executed requires space to store a copy of all the sources of the migrated services.
