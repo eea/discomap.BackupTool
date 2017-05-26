@@ -124,10 +124,13 @@ def copy(src, dest):
         else:
             arcpy.AddMessage('     Directory not copied. Error: %s' % e)
             return False
-    except:
-         arcpy.AddMessage('     The source can not be copied because the path is extremely long.')
+    except socket.timeout:
+         arcpy.AddMessage('     Timeout.')
          return False
-        
+    #except:
+    except Exception, e:
+         arcpy.AddMessage('     Failed: '+ str(e))
+         return False        
 
 def createZipFile(folder_path, output_path):
     """Zip the contents of an entire folder (with that folder included
@@ -139,18 +142,20 @@ def createZipFile(folder_path, output_path):
     # Retrieve the paths of the folder contents.
     contents = os.walk(folder_path)
     try:
-        zip_file = zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED)
+        zip_file = zipfile.ZipFile(output_path, 'w', allowZip64 = True)
         for root, folders, files in contents:
             # Include all subfolders, including empty ones.
             for folder_name in folders:
                 absolute_path = os.path.join(root, folder_name)
                 relative_path = absolute_path.replace(parent_folder + '\\','')
                 zip_file.write(absolute_path, relative_path)
+                #zipfile.ZipFile(absolute_path, relative_path, mode='w', allowZip64 = True)
                 
             for file_name in files:
                 absolute_path = os.path.join(root, file_name)
                 relative_path = absolute_path.replace(parent_folder + '\\','')
                 zip_file.write(absolute_path, relative_path)
+                #zipfile.ZipFile(absolute_path, relative_path, mode='w', allowZip64 = True)
 
 
         zip_file.close()
@@ -172,10 +177,9 @@ def createZipFile(folder_path, output_path):
         os.remove(output_path)
         return False
     
-    except:
+    except Exception, e:
+        arcpy.AddMessage('     Failed: '+ str(e))
         zip_file.close()
-        
-        arcpy.AddMessage('     The source can not be copied because the path is extremely long.')
         os.remove(output_path)
         return False
         
@@ -218,9 +222,8 @@ def backupMapServices(serverName, serverPort, adminUser, adminPass, serviceList,
                 pathInitial = propInitialService["properties"]["filePath"]
                 
                 pathInitial = pathInitial.replace(':', '', 1)
-                msdPath = pathInitial.replace('X', os.path.join(r'\\' + serverName, 'x'), 1)
-                
-                #msdPath = string.replace(pathInitial, 'X:', os.path.join(r'\\' + serverName, 'x'))
+                #msdPath = pathInitial.replace('X', os.path.join(r'\\' + serverName, 'x'), 1)
+		msdPath = os.path.join(r'\\' + serverName, pathInitial)                              
 
                 folderName = os.path.split(service)[0]
                 serviceName = os.path.split(service)[1]
@@ -284,7 +287,7 @@ if __name__ == "__main__":
     adminUser = arcpy.GetParameterAsText(2)
     adminPass = arcpy.GetParameterAsText(3)
     serviceType = arcpy.GetParameterAsText(4) 
-    serviceList = arcpy.GetParameterAsText(5)
+    serviceList = arcpy.GetParameterAsText(5)    
     backupPath = arcpy.GetParameterAsText(6)
 
     #sysTemp = tempfile.gettempdir()    
@@ -299,4 +302,3 @@ if __name__ == "__main__":
     
     if serviceType == "MapServer":
         backupMapServices(serverName, serverPort, adminUser, adminPass, serviceList, serviceType, workFolder)
-
